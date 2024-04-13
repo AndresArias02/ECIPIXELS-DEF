@@ -1,0 +1,75 @@
+# IntelliJ IDEA
+.idea/
+
+# Visual Studio
+.vs/
+
+# Mac OS
+.DS_Store
+
+# Node.js dependencies
+/node_modules/
+
+# Compiled output
+/dist/
+/tmp/
+/out-tsc/
+
+# Log files
+*.log
+
+# IntelliJ IDEA files
+*.iml
+.idea/
+.idea_modules/
+.idea/workspace.xml
+
+# Compiled Java classes
+*.class
+
+# Maven
+target/
+
+# Spring Boot
+/build/
+/target/
+
+# Redis
+*.rdb
+
+# Logs
+/logs/
+
+# OS-specific files
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Angular local environment variables
+/src/environments/environment.local.ts
+
+# IDE settings
+/.idea/
+/.vscode/
+
+# IntelliJ IDEA
+*.iws
+*.ipr
+*.iml
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Temporary files
+**/*.tmp
