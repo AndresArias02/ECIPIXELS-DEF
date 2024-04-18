@@ -3,6 +3,8 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Board } from '../../classes/board';
 import { Player } from '../../classes/player';
+import { WebSocketServiceService } from '../../services/web-socket-service.service';
+import { GameState } from '../../classes/game-state';
 
 @Component({
   selector: 'app-play-game',
@@ -13,21 +15,29 @@ export class PlayGameComponent implements OnInit {
 
   @ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
 
-  board: Board;
-  leaderBoard: Player[];
-  players: Player[];
+  gameState : GameState;
 
-  constructor(private gameService: GameService) { }
+  constructor(private gameService: GameService,private webSocketService:WebSocketServiceService) { }
 
   ngOnInit(): void {
-    this.getBoard();
-    this.getPlayers();
-    this.getLeaderBoard();
+    this.webSocketService.getGameStateObservable().subscribe(
+      (data: GameState) => {
+        console.log("Recibido nuevo estado del juego:", data);
+        this.gameState = data
+        this.resizeCanvas();
+        this.drawBoard();
+      },
+      (error) => {
+        console.error("Error al recibir el estado del juego:", error);
+      },
+    );
   }
 
-  getBoard() {
+  /*getBoard() {
+    console.log("Obteniendo el tablero...");
     this.gameService.getBoard().subscribe(
       (boardData: number[][]) => {
+        console.log("Tablero recibido", boardData);
         this.board = { grid: boardData };
         this.resizeCanvas();
         this.drawBoard();
@@ -36,9 +46,9 @@ export class PlayGameComponent implements OnInit {
         console.error("Error al obtener el tablero:", error);
       }
     );
-  }
+  }*/
 
-  getPlayers() {
+  /*getPlayers() {
     console.log("Obteniendo jugadores...");
     this.gameService.getPlayers().subscribe(
       (players: Player[]) => {
@@ -49,10 +59,10 @@ export class PlayGameComponent implements OnInit {
         console.error("Error al obtener los jugadores:", error);
       }
     );
-  }
+  }*/
   
 
-  getLeaderBoard() {
+  /*getLeaderBoard() {
     console.log("Obteniendo leaderboard...");
     this.gameService.getLeaderBoard().subscribe(
       (leaderBoard: Player[]) => {
@@ -63,14 +73,14 @@ export class PlayGameComponent implements OnInit {
         console.error("Error al obtener el leaderboard:", error);
       }
     );
-  }
+  }*/
 
   resizeCanvas(): void {
-    if (!this.board || !this.board.grid) return;
+    if (!this.gameState.board) return;
 
     // Calcula el tamaño del canvas en función del tamaño del tablero y el tamaño de las celdas
-    const canvasWidth = this.board.grid[0].length * 20;
-    const canvasHeight = this.board.grid.length * 20;
+    const canvasWidth = this.gameState.board[0].length * 20;
+    const canvasHeight = this.gameState.board.length * 20;
 
     // Asigna el tamaño calculado al canvas
     this.canvas.nativeElement.width = canvasWidth;
@@ -89,25 +99,27 @@ export class PlayGameComponent implements OnInit {
     // Limpia el canvas
     ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   
-    if (!this.board || !this.board.grid) return;
+    if (!this.gameState.board) return;
   
     // Itera sobre cada celda del tablero
-    for (let y = 0; y < this.board.grid.length; y++) {
-      for (let x = 0; x < this.board.grid[y].length; x++) {
-        const cellValue = this.board.grid[y][x];
+    for (let y = 0; y < this.gameState.board.length; y++) {
+      for (let x = 0; x < this.gameState.board[y].length; x++) {
+        const cellValue = this.gameState.board[y][x];
         const color = this.getColor(cellValue);
   
         // Dibuja un borde negro en la posición de la celda
-        ctx.strokeStyle = 'black';
-        console.log("-------------------------------------------")
-        ctx.strokeRect(x * 20, y * 20, 20, 20);
+        if(cellValue != null){
+          ctx.strokeStyle = 'black';
+          ctx.strokeRect(x * 20, y * 20, 20, 20);
+        }
+        
   
         // Rellena la celda con el color correspondiente
         ctx.fillStyle = color;
         ctx.fillRect(x * 20, y * 20, 20, 20);
   
         // Dibuja la cabeza del jugador si la celda corresponde a la posición de su cabeza
-        const playerWithHead = this.players.find(player => player.head.row === y && player.head.col === x);
+        const playerWithHead = this.gameState.players.find(player => player.head.row === y && player.head.col === x);
         if (playerWithHead) {
             // Calcula el color más claro para la cabeza según el color del jugador
             let headColor = '';
@@ -133,16 +145,16 @@ export class PlayGameComponent implements OnInit {
   getColor(cellValue: number): string {
     // Si el valor de la celda es 0, devolvemos blanco
     if (cellValue === 0) {
-      return 'white';
+      return 'gray';
     }
 
     if (cellValue === null) {
-      return 'red';
+      return 'white';
     }
 
     // Buscamos el jugador correspondiente al id de la casilla
     const playerId = cellValue; 
-    const foundPlayer = this.players.find(player => player.playerId === playerId);
+    const foundPlayer = this.gameState.players.find(player => player.playerId === playerId);
     
     // Si no se encuentra el jugador, devolvemos un color predeterminado
     if (!foundPlayer) {
