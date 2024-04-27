@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Router } from '@angular/router';
 import { WebSocketServiceService } from '../../services/web-socket-service.service';
+import { Player } from '../../classes/player';
+import { PlayGameComponent } from '../play-game/play-game.component';
 
 @Component({
   selector: 'app-start-game',
@@ -11,6 +13,7 @@ import { WebSocketServiceService } from '../../services/web-socket-service.servi
 export class StartGameComponent implements OnInit{
 
   name:string;
+  player:Player;
   
   constructor(private gameService:GameService, private router:Router,private webSocketService: WebSocketServiceService){
 
@@ -24,8 +27,10 @@ export class StartGameComponent implements OnInit{
   addNewPlayer() {
     this.gameService.addPlayer(this.name).subscribe(
       (response) => {
-        console.log("Jugador agregado correctamente", response);
+        this.player = response.body;
+        console.log("Jugador agregado correctamente", this.player);
         this.webSocketService.sendMessage("Nuevo jugador:"+this.name);
+        this.gameService.setCurrentPlayer(this.player);
         this.startGame();
       },
       (error) => {
@@ -37,5 +42,4 @@ export class StartGameComponent implements OnInit{
   startGame(){
     this.router.navigate(['/Game']);
   }
-
 }

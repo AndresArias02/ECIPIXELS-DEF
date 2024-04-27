@@ -12,6 +12,8 @@ export class GameService {
 
   private URL = "http://localhost:8080/api/eciPixelsGame";
 
+  currentPlayer:Player;
+
   constructor(private httpClient:HttpClient) { }
 
   //Service to get the Board
@@ -34,5 +36,12 @@ export class GameService {
     return this.httpClient.post<any>(`${this.URL}/addPlayer`, name, { observe: 'response' });
   }
 
+  setCurrentPlayer(player:Player){
+    this.currentPlayer = player;
+  }
+
+  getCurrentPlayer(): Player{
+    return this.currentPlayer;
+  }
 
 }

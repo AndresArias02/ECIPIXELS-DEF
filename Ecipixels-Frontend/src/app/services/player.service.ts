@@ -13,28 +13,24 @@ export class PlayerService {
 
   constructor(private httpClient:HttpClient) { }
 
-  //Service to moveUP the player
   moveUp(idPlayer: number): Observable<HttpResponse<any>> {
-    return this.httpClient.post<any>(`${this.URL}/moveUp`, idPlayer, { observe: 'response' });
+    return this.httpClient.post<any>(`${this.URL}/moveUp`,idPlayer, { observe: 'response' });
   }
-
-  //Service to moveDown the player
+  
   moveDown(idPlayer: number): Observable<HttpResponse<any>> {
-    return this.httpClient.post<any>(`${this.URL}/moveDown`, idPlayer, { observe: 'response' });
+    return this.httpClient.post<any>(`${this.URL}/moveDown`,idPlayer, { observe: 'response' });
   }
-
-  //Service to moveRight the player
-  moveRight(idPlayer: number): Observable<HttpResponse<any>> {
-    return this.httpClient.post<any>(`${this.URL}/moveRight`, idPlayer, { observe: 'response' });
-  }
-
-  //Service to moveLeft the player
+ 
   moveLeft(idPlayer: number): Observable<HttpResponse<any>> {
-    return this.httpClient.post<any>(`${this.URL}/moveLeft`, idPlayer, { observe: 'response' });
+    return this.httpClient.post<any>(`${this.URL}/moveLeft`,idPlayer, { observe: 'response' });
   }
 
-  //Service to stop the player
-  stop(idPlayer: number): Observable<HttpResponse<any>> {
-    return this.httpClient.post<any>(`${this.URL}/stop`, idPlayer, { observe: 'response' });
+  moveRight(idPlayer: number): Observable<HttpResponse<any>> {
+    return this.httpClient.post<any>(`${this.URL}/moveRight`,idPlayer, { observe: 'response' });
   }
+  
+  stop(idPlayer: number): Observable<HttpResponse<any>> {
+    return this.httpClient.post<any>(`${this.URL}/stop`, idPlayer, { observe: 'response' } );
+  }
+  
 }

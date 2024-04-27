@@ -20,10 +20,15 @@ public class WebSocketController {
     @MessageMapping("/gameState")
     @SendTo("/topic/GameState")
     public GameState handleNewPlayer(String message) {
-        System.out.println(message);
         Integer[][] grid = gameServices.getBoard();
         List<Player> players = gameServices.getPlayers();
         List<Player> leaderboard = gameServices.getLeaderBoard();
         return new GameState(grid,players,leaderboard);
+    }
+
+    @MessageMapping("/player")
+    @SendTo("/topic/player")
+    public void getActualPlayer(Integer playerId){
+
     }
 }
