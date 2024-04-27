@@ -43,17 +43,27 @@ public class BoardServices {
     public Integer[][] getBoard() {
         Integer[][] grid = new Integer[50][50];
         for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid.length; j++) {
+            for (int j = 0; j < grid[i].length; j++) {
                 String key = i + "," + j;
-                String value = (String) redisTemplate.opsForHash().get("board_Grid", key);
-                if (value != null && !value.equals("null")) {
-                    grid[i][j] = Integer.parseInt(value);
+                Object value = redisTemplate.opsForHash().get("board_Grid", key);
+                if (value instanceof String) {
+                    String stringValue = (String) value;
+                    if (!stringValue.equals("null")) {
+                        grid[i][j] = Integer.parseInt(stringValue);
+                    } else {
+                        grid[i][j] = null;
+                    }
+                } else if (value instanceof Integer) {
+                    grid[i][j] = (Integer) value;
                 } else {
-                    grid[i][j] = null;
+                    // Manejo de otros tipos si es necesario
                 }
             }
         }
         return grid;
     }
+
+
+
 
 }

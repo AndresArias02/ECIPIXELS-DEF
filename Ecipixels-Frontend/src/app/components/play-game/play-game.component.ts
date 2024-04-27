@@ -1,10 +1,11 @@
 // play-game.component.ts
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Board } from '../../classes/board';
 import { Player } from '../../classes/player';
 import { WebSocketServiceService } from '../../services/web-socket-service.service';
 import { GameState } from '../../classes/game-state';
+import { PlayerService } from '../../services/player.service';
 
 @Component({
   selector: 'app-play-game',
@@ -16,10 +17,25 @@ export class PlayGameComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
 
   gameState : GameState;
+  player : Player;
+  playerId: number; 
 
-  constructor(private gameService: GameService,private webSocketService:WebSocketServiceService) { }
+  constructor(private playerService:PlayerService,private gameService: GameService,private webSocketService:WebSocketServiceService) { }
 
   ngOnInit(): void {
+    this.getGameState();
+    this.getPlayer();
+  }
+
+  getPlayer() {
+    this.player = this.gameService.getCurrentPlayer();
+    console.log('jugador en sesión :', this.player);
+    if (this.player) {
+      this.playerId = this.player.playerId;
+    }
+  }
+
+  getGameState(){
     this.webSocketService.getGameStateObservable().subscribe(
       (data: GameState) => {
         console.log("Recibido nuevo estado del juego:", data);
@@ -33,47 +49,91 @@ export class PlayGameComponent implements OnInit {
     );
   }
 
-  /*getBoard() {
-    console.log("Obteniendo el tablero...");
-    this.gameService.getBoard().subscribe(
-      (boardData: number[][]) => {
-        console.log("Tablero recibido", boardData);
-        this.board = { grid: boardData };
-        this.resizeCanvas();
-        this.drawBoard();
-      },
-      (error) => {
-        console.error("Error al obtener el tablero:", error);
-      }
-    );
-  }*/
+  // Método para manejar los eventos del teclado
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (!this.playerId) return; 
 
-  /*getPlayers() {
-    console.log("Obteniendo jugadores...");
-    this.gameService.getPlayers().subscribe(
-      (players: Player[]) => {
-        console.log("Jugadores recibidos:", players);
-        this.players = players;
-      },
-      (error) => {
-        console.error("Error al obtener los jugadores:", error);
-      }
-    );
-  }*/
-  
+    switch (event.key) {
+      case 'ArrowUp':
+        console.log('arrribbbaaaaa');
+        this.moveUp();
+        break;
+      case 'ArrowDown':
+        console.log('abbbaaajooooo');
+        this.moveDown();
+        break;
+      case 'ArrowLeft':
+        console.log('izquierdaaaaaaaa');
+        this.moveLeft();
+        break;
+      case 'ArrowRight':
+        console.log('dereccccchhhhhaaaa');
+        this.moveRight();
+        break;
+      case 'p':
+        console.log('paaaarrrooooo');
+        this.stop();
+        break; 
+      default:
+        return; 
+    }
+  }
 
-  /*getLeaderBoard() {
-    console.log("Obteniendo leaderboard...");
-    this.gameService.getLeaderBoard().subscribe(
-      (leaderBoard: Player[]) => {
-        console.log("Leaderboard recibido:", leaderBoard);
-        this.leaderBoard = leaderBoard;
+  moveUp(){
+    this.playerService.moveUp(this.playerId).subscribe(
+      (response) => {
+        console.log("movimiento del jugador hacia arriba",response);
       },
       (error) => {
-        console.error("Error al obtener el leaderboard:", error);
+        console.error("Error al enviar el movimiento del jugador:", error);
       }
     );
-  }*/
+  }
+
+  moveDown(){
+    this.playerService.moveDown(this.playerId).subscribe(
+      (response) => {
+        console.log("movimiento del jugador hacia abajo",response);
+      },
+      (error) => {
+        console.error("Error al enviar el movimiento del jugador:", error);
+      }
+    );
+  }
+
+  moveLeft(){
+    this.playerService.moveLeft(this.playerId).subscribe(
+      (response) => {
+        console.log("movimiento del jugador hacia la izquierda",response);
+      },
+      (error) => {
+        console.error("Error al enviar el movimiento del jugador:", error);
+      }
+    );
+  }
+
+  moveRight(){
+    this.playerService.moveRight(this.playerId).subscribe(
+      (response) => {
+        console.log("movimiento del jugador hacia la derecha",response);
+      },
+      (error) => {
+        console.error("Error al enviar el movimiento del jugador:", error);
+      }
+    );
+  }
+
+  stop(){
+    this.playerService.stop(this.playerId).subscribe(
+      (response) => {
+        console.log("Detiene el movimiento del jugador",response);
+      },
+      (error) => {
+        console.error("Error al enviar el movimiento del jugador:", error);
+      }
+    );
+  }
 
   resizeCanvas(): void {
     if (!this.gameState.board) return;

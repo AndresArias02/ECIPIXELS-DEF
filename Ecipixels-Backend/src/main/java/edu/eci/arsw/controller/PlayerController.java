@@ -1,5 +1,6 @@
 package edu.eci.arsw.controller;
 
+import edu.eci.arsw.service.GameServices;
 import edu.eci.arsw.service.PlayerServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,9 @@ public class PlayerController {
     @Autowired
     private PlayerServices playerServices;
 
+    @Autowired
+    private GameServices gameServices;
+
 
     @RequestMapping(value = "/pOwned/{id}",method = RequestMethod.GET)
     public ResponseEntity<?> getPixelsOwned(@PathVariable String id){
@@ -31,12 +35,13 @@ public class PlayerController {
     }
 
     @RequestMapping(value = "/moveUp",method = RequestMethod.POST)
-    public ResponseEntity<?> moveUp(@RequestBody Integer idPlayer) {
-        if (idPlayer == null) {
+    public ResponseEntity<?> moveUp(@RequestBody Integer playerId) {
+        System.out.println("entrooroororoororooroororoororooro");
+        if (playerId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.moveUp(idPlayer);
+            playerServices.moveUp(playerId,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
@@ -50,7 +55,7 @@ public class PlayerController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.moveDown(idPlayer);
+            playerServices.moveDown(idPlayer,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
@@ -64,7 +69,7 @@ public class PlayerController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.moveRight(idPlayer);
+            playerServices.moveRight(idPlayer,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
@@ -78,7 +83,7 @@ public class PlayerController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.moveLeft(idPlayer);
+            playerServices.moveLeft(idPlayer,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
@@ -87,12 +92,12 @@ public class PlayerController {
     }
 
     @RequestMapping(value = "/stop",method = RequestMethod.POST)
-    public ResponseEntity<?> stop(@RequestBody Integer idPlayer) {
-        if (idPlayer == null) {
+    public ResponseEntity<?> stop(@RequestBody Integer playerId) {
+        if (playerId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.stop(idPlayer);
+            playerServices.stop(playerId,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);

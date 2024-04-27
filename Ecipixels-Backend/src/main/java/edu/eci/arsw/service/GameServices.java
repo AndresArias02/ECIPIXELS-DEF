@@ -64,12 +64,12 @@ public class GameServices {
     }
 
     @Cacheable(RedisConfig.cacheName)
-    public void addNewPlayer(String name){
+    public void addNewPlayer(Player player){
         Game game = getGame();
-        Player player = new Player(name,this);
         setNewPlayer(game,player);
         boardServices.updateBoard(player.getPixelsOwned(),player.getPlayerId());
         playerServices.addPlayer(player);
+        player.start();
         updateGame(game);
     }
 
@@ -91,6 +91,7 @@ public class GameServices {
         playerServices.deletePlayer(player);
     }
 
+    @Cacheable(RedisConfig.cacheName)
     public void updatePlayer(Player player){
         playerServices.updatePlayer(player);
     }

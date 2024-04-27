@@ -3,6 +3,7 @@ package edu.eci.arsw.controller;
 import edu.eci.arsw.model.*;
 import edu.eci.arsw.service.BoardServices;
 import edu.eci.arsw.service.GameServices;
+import edu.eci.arsw.service.PlayerServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,12 +59,14 @@ public class GameController {
 
     @RequestMapping(value = "/addPlayer",method = RequestMethod.POST)
     public ResponseEntity<?> addPlayer(@RequestBody String name) {
+        System.out.println("entrooooo a adddd pllllaaayerrr");
         if (name == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            gameServices.addNewPlayer(name);
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            Player player = new Player(name,this.gameServices);
+            gameServices.addNewPlayer(player);
+            return new ResponseEntity<>(player,HttpStatus.CREATED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
             return new ResponseEntity<>("Error" + ex.getMessage(),HttpStatus.FORBIDDEN);
