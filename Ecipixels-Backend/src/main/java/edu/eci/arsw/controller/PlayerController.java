@@ -34,23 +34,24 @@ public class PlayerController {
         }
     }
 
-    @RequestMapping(value = "/moveUp",method = RequestMethod.POST)
+    /*@RequestMapping(value = "/moveUp",method = RequestMethod.POST)
     public ResponseEntity<?> moveUp(@RequestBody Integer playerId) {
-        System.out.println("entrooroororoororooroororoororooro");
+        System.out.println("-------- mover arriba -----------");
         if (playerId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            playerServices.moveUp(playerId,gameServices);
+            playerServices.move(playerId,gameServices);
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
             return new ResponseEntity<>("Error" + ex.getMessage(),HttpStatus.FORBIDDEN);
         }
-    }
+    }*/
 
     @RequestMapping(value = "/moveDown",method = RequestMethod.POST)
     public ResponseEntity<?> moveDown(@RequestBody Integer idPlayer) {
+        System.out.println("-------- mover abajo -----------");
         if (idPlayer == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -65,6 +66,7 @@ public class PlayerController {
 
     @RequestMapping(value = "/moveRight",method = RequestMethod.POST)
     public ResponseEntity<?> moveRight(@RequestBody Integer idPlayer) {
+        System.out.println("-------- mover derecha -----------");
         if (idPlayer == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -79,6 +81,7 @@ public class PlayerController {
 
     @RequestMapping(value = "/moveLeft",method = RequestMethod.POST)
     public ResponseEntity<?> moveLeft(@RequestBody Integer idPlayer) {
+        System.out.println("-------- mover izquierda -----------");
         if (idPlayer == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -93,6 +96,7 @@ public class PlayerController {
 
     @RequestMapping(value = "/stop",method = RequestMethod.POST)
     public ResponseEntity<?> stop(@RequestBody Integer playerId) {
+        System.out.println("-------- parar jugadorr -----------");
         if (playerId == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

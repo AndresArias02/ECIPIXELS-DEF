@@ -59,12 +59,11 @@ public class GameController {
 
     @RequestMapping(value = "/addPlayer",method = RequestMethod.POST)
     public ResponseEntity<?> addPlayer(@RequestBody String name) {
-        System.out.println("entrooooo a adddd pllllaaayerrr");
         if (name == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try{
-            Player player = new Player(name,this.gameServices);
+            Player player = new Player(name);
             gameServices.addNewPlayer(player);
             return new ResponseEntity<>(player,HttpStatus.CREATED);
         }catch (Exception ex){

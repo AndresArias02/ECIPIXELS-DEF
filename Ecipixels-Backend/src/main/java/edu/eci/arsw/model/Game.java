@@ -54,8 +54,8 @@ public class Game implements Serializable {
     }
 
     public void deletePlayer(Player player){
-        List<String> pixelsList = player.getPixelsOwned();
-        gameServices.updateBoardGrid(pixelsList,0);
+        List<String> pixelsOwned = player.getPixelsOwned();
+        gameServices.updateBoardGrid(pixelsOwned,0);
         usedColors.remove(player.getColor());
         players.remove(player);
         gameServices.deletePlayer(player);

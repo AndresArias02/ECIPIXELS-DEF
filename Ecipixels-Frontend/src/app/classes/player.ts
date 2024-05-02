@@ -6,6 +6,7 @@ export class Player {
     playerName: string;
     head: Head;
     color: string;
+    isAlive: boolean;
     pixelsOwned: string[];
     pixelsRoute: string[];
     gainedArea: number;

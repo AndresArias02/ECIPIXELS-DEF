@@ -6,12 +6,10 @@ import edu.eci.arsw.service.GameServices;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.redis.core.RedisHash;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RedisHash
-public class Player implements Runnable, Serializable {
+public class Player implements Serializable{
     private Integer id;
     private String name;
     private Head head;
@@ -20,17 +18,12 @@ public class Player implements Runnable, Serializable {
     private List<String> pixelsRoute;
     private Integer gainedArea;
     private boolean isAlive = true;
-    private boolean movingUp = false;
-    private boolean movingRight = false;
-    private boolean movingLeft = false;
-    private boolean movingDown = false;
-    private boolean move = false;
     @Transient
     @JsonIgnore
     private GameServices gameServices;
 
 
-    public Player(String name, GameServices gameServices){
+    public Player(String name){
         setId();
         this.name = name;
         this.head = null;
@@ -39,96 +32,39 @@ public class Player implements Runnable, Serializable {
         this.pixelsRoute = new ArrayList<>();
         this.pixelsRoute.add("0,0");
         this.gainedArea = 0;
-        this.gameServices = gameServices;
     }
 
     public Player() {
 
     }
 
-    @Override
-    public void run() {
-        while (move) {
-            try {
-                System.out.println("-----------------------------------------");
-                moveUp();
-                moveDown();
-                moveLeft();
-                moveRight();
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void start() {
-        Thread player = new Thread(this);
-        player.start();
-    }
-
-    private void moveUp(){
-        if(movingUp){
-            System.out.println("se esta moooviiieeendddooo arrribbbaa");
-            this.head.moveUp();
-            gameServices.updatePlayer(this);
-            updatePixelsRoute();
-        }
-    }
-
-    private void moveDown(){
-        if(movingDown){
-            System.out.println("se esta moooviiieeendddooo abaaaaajjjjooo");
-            this.head.moveDown();
-            gameServices.updatePlayer(this);
-            updatePixelsRoute();
-        }
-    }
-
-    private void moveLeft(){
-        if(movingLeft){
-            System.out.println("se esta moooviiieeendddooo iiizzzqqqquuuiiieeerrrdaaa");
-            this.head.moveLeft();
-            gameServices.updatePlayer(this);
-            updatePixelsRoute();
-        }
-    }
-
-    private void moveRight(){
-        if(movingRight){
-            System.out.println("se esta moooviiieeendddooo dddeeerrreeeccchhhaa");
-            this.head.moveRight();
-            gameServices.updatePlayer(this);
-            updatePixelsRoute();
-        }
-    }
-
     public void updatePixelsRoute() {
         Game game = gameServices.getGame();
         Integer pixel = game.getPixel(head.getRow(), head.getCol());
-        String positionPixel = head.getRow()+","+ head.getCol();
-        if (pixel != null) {
+        String positionPixel = head.getRow() + "," + head.getCol();
+        if (this.isAlive && pixel != null && head.getCol() != 0 && head.getRow() != 0 && head.getCol() != 49 && head.getRow() != 49) {
             checkIfPlayerKilledAnother(positionPixel);
             if (!pixelsOwned.contains(positionPixel)) {
                 pixelsRoute.add(positionPixel);
             } else {
                 if (!pixelsRoute.isEmpty()) {
-                    for (String positionsPixels : pixelsRoute) {
+                    List<String> routeCopy = new ArrayList<>(pixelsRoute);
+                    for (String positionsPixels : routeCopy) {
                         String[] values = positionsPixels.split(",");
                         int x = Integer.parseInt(values[0]);
                         int y = Integer.parseInt(values[1]);
-                        Integer p = game.getPixel(x,y);
-                        if (p != null && p!=0) {
+                        Integer p = game.getPixel(x, y);
+                        if (p != null && p != 0) {
                             Player player = gameServices.getPlayer(String.valueOf(p));
-                            gameServices.updatePixelBoardGrid(positionPixel,0);
+                            gameServices.updatePixelBoardGrid(positionPixel, 0);
                             player.removePixel(positionsPixels);
                             player.setGainedArea(player.getPixelsOwned().size());
                         }
-                        gameServices.updatePixelBoardGrid(positionPixel,this.getPlayerId());
+                        gameServices.updatePixelBoardGrid(positionPixel, this.id);
                     }
 
-                    //fillArea(pixelsRoute, game,this);
-                    pixelsOwned.addAll(pixelsRoute);
+                    routeCopy.remove("0,0");
+                    pixelsOwned.addAll(routeCopy);
                     setGainedArea(pixelsOwned.size());
                     pixelsRoute.clear();
                     pixelsRoute.add("0,0");
@@ -137,9 +73,11 @@ public class Player implements Runnable, Serializable {
                 }
             }
         } else {
+            this.isAlive = false;
             game.deletePlayer(this);
         }
     }
+
 
     public void checkIfPlayerKilledAnother(String pixel) {
         Game game = gameServices.getGame();
@@ -154,92 +92,36 @@ public class Player implements Runnable, Serializable {
         }
     }
 
-    public void movePlayerUp() {
-        synchronized (this){
-            this.move = true;
-            this.movingUp = true;
-            this.movingDown = false;
-            this.movingLeft = false;
-            this.movingRight = false;
-            this.run();
-        }
-
-    }
-
-    public void movePlayerRight() {
-        synchronized (this){
-            this.move = true;
-            this.movingRight = true;
-            this.movingUp = false;
-            this.movingDown = false;
-            this.movingLeft = false;
-            this.run();
-        }
-
-    }
-
-    public void movePlayerLeft() {
-        this.move = true;
-        this.movingLeft = true;
-        this.movingRight = false;
-        this.movingUp = false;
-        this.movingDown = false;
-        this.run();
-    }
-
-    public void movePlayerDown() {
-        synchronized (this){
-            this.move = true;
-            this.movingDown = true;
-            this.movingRight = false;
-            this.movingUp = false;
-            this.movingLeft = false;
-            this.run();
-        }
-    }
-
-    public void stopPlayer() {
-        synchronized (this){
-            this.move = false;
-            this.movingDown = false;
-            this.movingRight = false;
-            this.movingUp = false;
-            this.movingLeft = false;
-            this.run();
-        }
-    }
-
-    public synchronized void addPixelOwned(int x, int y) {
+    public void addPixelOwned(int x, int y) {
         pixelsOwned.add(x + "," + y);
     }
 
-    public synchronized void addPixelRoute(int x, int y) {
+    public void addPixelRoute(int x, int y) {
         pixelsRoute.add(x + "," + y);
     }
 
-    public synchronized void removePixel(String p) {
+    public void removePixel(String p) {
         pixelsOwned.remove(p);
-    }
-
-    public Integer getPlayerId() {
-        return id;
-    }
-
-    public String getPlayerName() {
-        return name;
-    }
-
-
-    public Head getHead() {
-        return head;
     }
 
     public void setHead(Head head) {
         this.head = head;
     }
 
+    public Head getHead() {
+        return this.head;
+    }
+
+    public String getPlayerName(){
+        return this.name;
+    }
+
     public String getColor() {
         return color;
+    }
+
+    public Integer getPlayerId(){
+        return this.id;
     }
 
     public void setColor(String color) {
@@ -266,11 +148,11 @@ public class Player implements Runnable, Serializable {
         this.gainedArea = gainedArea;
     }
 
-    public boolean playerIsAlive() {
+    public boolean getIsAlive() {
         return isAlive;
     }
 
-    public synchronized void setAlive(boolean alive) {
+    public void setAlive(boolean alive) {
         isAlive = alive;
     }
 
@@ -322,12 +204,10 @@ public class Player implements Runnable, Serializable {
                     player.removePixel(pixel);
                     player.setGainedArea(player.getPixelsOwned().size());
                 }
-                game.setPixelProperties(x,y, this.getPlayerId());
+                game.setPixelProperties(x,y, this.id);
             }
         }
 
         this.pixelsOwned.addAll(allPixels);
-
     }
-
 }

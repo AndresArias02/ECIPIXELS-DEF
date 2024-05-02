@@ -5,6 +5,7 @@ import edu.eci.arsw.Configurations.RedisConfig;
 import edu.eci.arsw.model.Player;
 import edu.eci.arsw.repository.PlayerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.stereotype.Service;
@@ -29,59 +30,35 @@ public class PlayerServices {
         playerRepository.save(player);
     }
 
-    @Cacheable(RedisConfig.cacheName)
+    @CacheEvict(RedisConfig.cacheName)
     public void deletePlayer(Player player){
         playerRepository.deleteById(player.getPlayerId());
     }
 
-    public void moveUp(Integer idPlayer,GameServices gameServices){
-        Player player;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-            player.setGameServices(gameServices);
-            player.movePlayerUp();
-        }
+    public void move(Player player,GameServices gameServices){
+        player.setGameServices(gameServices);
+        player.updatePixelsRoute();
+        updatePlayer(player);
     }
 
     public void moveDown(Integer idPlayer,GameServices gameServices){
-        Player player;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-            player.setGameServices(gameServices);
-            player.movePlayerDown();
-        }
+        Player player = getPlayerWithId(idPlayer);
+        player.setGameServices(gameServices);
     }
 
     public void moveRight(Integer idPlayer, GameServices gameServices){
-        Player player;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-            player.setGameServices(gameServices);
-            player.movePlayerRight();
-        }
+        Player player = getPlayerWithId(idPlayer);
+        player.setGameServices(gameServices);
     }
 
     public void moveLeft(Integer idPlayer, GameServices gameServices){
-        Player player;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-            player.setGameServices(gameServices);
-            player.movePlayerLeft();
-        }
+        Player player = getPlayerWithId(idPlayer);
+        player.setGameServices(gameServices);
     }
 
     public void stop(Integer idPlayer, GameServices gameServices){
-        Player player;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-            player.setGameServices(gameServices);
-            player.stopPlayer();
-        }
+        Player player = getPlayerWithId(idPlayer); ;
+        player.setGameServices(gameServices);
     }
 
     public List<String> getPixelsOwned(String id){
@@ -91,6 +68,15 @@ public class PlayerServices {
             pixels = optionalPlayer.get().getPixelsOwned();
         }
         return pixels;
+    }
+
+    public Player getPlayerWithId(Integer idPlayer){
+        Player player = null;
+        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
+        if (optionalPlayer.isPresent()) {
+            player = optionalPlayer.get();
+        }
+        return player;
     }
 
     @Cacheable(RedisConfig.cacheName)

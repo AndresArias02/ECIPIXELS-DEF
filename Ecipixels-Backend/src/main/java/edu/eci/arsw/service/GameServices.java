@@ -6,6 +6,7 @@ import edu.eci.arsw.model.Game;
 import edu.eci.arsw.model.Player;
 import edu.eci.arsw.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,6 @@ public class GameServices {
         setNewPlayer(game,player);
         boardServices.updateBoard(player.getPixelsOwned(),player.getPlayerId());
         playerServices.addPlayer(player);
-        player.start();
         updateGame(game);
     }
 
@@ -87,6 +87,7 @@ public class GameServices {
        return (List<Player>) playerServices.getPLayers();
     }
 
+    @CacheEvict(RedisConfig.cacheName)
     public void deletePlayer(Player player){
         playerServices.deletePlayer(player);
     }
@@ -103,5 +104,9 @@ public class GameServices {
     public List<Player> getLeaderBoard(){
         Game game = getGame();
         return game.getPlayers();
+    }
+
+    public void move(Player player) {
+        this.playerServices.move(player,this);
     }
 }
