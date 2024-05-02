@@ -28,8 +28,7 @@ export class StartGameComponent implements OnInit{
     this.gameService.addPlayer(this.name).subscribe(
       (response) => {
         this.player = response.body;
-        console.log("Jugador agregado correctamente", this.player);
-        this.webSocketService.sendMessage("Nuevo jugador:"+this.name);
+        this.webSocketService.sendMessageLogin("Nuevo jugador:"+this.name);
         this.gameService.setCurrentPlayer(this.player);
         this.startGame();
       },

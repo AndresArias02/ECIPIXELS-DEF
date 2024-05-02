@@ -1,7 +1,5 @@
-// play-game.component.ts
 import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { GameService } from '../../services/game.service';
-import { Board } from '../../classes/board';
 import { Player } from '../../classes/player';
 import { WebSocketServiceService } from '../../services/web-socket-service.service';
 import { GameState } from '../../classes/game-state';
@@ -15,17 +13,35 @@ import { PlayerService } from '../../services/player.service';
 export class PlayGameComponent implements OnInit {
 
   @ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
+  private ctx: CanvasRenderingContext2D;
 
   gameState : GameState;
   player : Player;
   playerId: number; 
+  currentDirection: string;
+  moveTimeout: any;
 
   constructor(private playerService:PlayerService,private gameService: GameService,private webSocketService:WebSocketServiceService) { }
 
   ngOnInit(): void {
-    this.getGameState();
+    const canvas = this.canvas.nativeElement;
+    const context = canvas.getContext('2d');
+  
+    if (!context) {
+      console.error('No se pudo obtener el contexto del canvas');
+      return;
+    }
+
+    this.ctx = context;
+  
+    this.webSocketService.initconnectionSocket();
+    this.webSocketService.movePlayerInServer();
+    this.getGameStateLogging();
+    this.getGameStateMovements();
     this.getPlayer();
   }
+  
+  
 
   getPlayer() {
     this.player = this.gameService.getCurrentPlayer();
@@ -35,12 +51,34 @@ export class PlayGameComponent implements OnInit {
     }
   }
 
-  getGameState(){
-    this.webSocketService.getGameStateObservable().subscribe(
+  updatePlayer() {
+    if (this.gameState && this.playerId) {
+      const updatedPlayer = this.gameState.players.find(player => player.playerId === this.playerId);
+      if (updatedPlayer) {
+        this.player = updatedPlayer;
+      }
+    }
+  }
+
+  getGameStateLogging(){
+    this.webSocketService.getGameStateObservableLogging().subscribe(
       (data: GameState) => {
-        console.log("Recibido nuevo estado del juego:", data);
         this.gameState = data
         this.resizeCanvas();
+        this.drawBoard();
+      },
+      (error) => {
+        console.error("Error al recibir el estado del juego:", error);
+      },
+    );
+  }
+
+  getGameStateMovements(){
+    this.webSocketService.getGameStateObservableMovements().subscribe(
+      (data: GameState) => {
+        this.gameState = data
+        this.resizeCanvas();
+        this.updatePlayer();
         this.drawBoard();
       },
       (error) => {
@@ -52,158 +90,178 @@ export class PlayGameComponent implements OnInit {
   // Método para manejar los eventos del teclado
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    if (!this.playerId) return; 
+    if (!this.playerId) return;
+
+    let newDirection: string;
 
     switch (event.key) {
       case 'ArrowUp':
-        console.log('arrribbbaaaaa');
-        this.moveUp();
+        newDirection = 'up';
         break;
       case 'ArrowDown':
-        console.log('abbbaaajooooo');
-        this.moveDown();
+        newDirection = 'down';
         break;
       case 'ArrowLeft':
-        console.log('izquierdaaaaaaaa');
-        this.moveLeft();
+        newDirection = 'left';
         break;
       case 'ArrowRight':
-        console.log('dereccccchhhhhaaaa');
-        this.moveRight();
+        newDirection = 'right';
         break;
       case 'p':
         console.log('paaaarrrooooo');
         this.stop();
-        break; 
+        return;
       default:
-        return; 
+        return;
+    }
+
+    // Verificar si la nueva dirección es diferente a la dirección actual
+    if (this.currentDirection !== newDirection) {
+      // Detener el movimiento actual antes de cambiar la dirección
+      this.stop();
+      
+      // Actualizar la dirección actual
+      this.currentDirection = newDirection;
+      
+      // Ejecutar el método correspondiente a la nueva dirección
+      switch (newDirection) {
+        case 'up':
+          console.log('arrribbbaaaaa');
+          this.moveUp();
+          break;
+        case 'down':
+          console.log('abbbaaajooooo');
+          this.moveDown();
+          break;
+        case 'left':
+          console.log('izquierdaaaaaaaa');
+          this.moveLeft();
+          break;
+        case 'right':
+          console.log('dereccccchhhhhaaaa');
+          this.moveRight();
+          break;
+      }
     }
   }
 
-  moveUp(){
-    this.playerService.moveUp(this.playerId).subscribe(
-      (response) => {
-        console.log("movimiento del jugador hacia arriba",response);
-      },
-      (error) => {
-        console.error("Error al enviar el movimiento del jugador:", error);
-      }
-    );
+  moveUp() {
+    this.movePlayer(0, -1);
   }
 
   moveDown(){
-    this.playerService.moveDown(this.playerId).subscribe(
-      (response) => {
-        console.log("movimiento del jugador hacia abajo",response);
-      },
-      (error) => {
-        console.error("Error al enviar el movimiento del jugador:", error);
-      }
-    );
+    this.movePlayer(0, 1);
   }
 
   moveLeft(){
-    this.playerService.moveLeft(this.playerId).subscribe(
-      (response) => {
-        console.log("movimiento del jugador hacia la izquierda",response);
-      },
-      (error) => {
-        console.error("Error al enviar el movimiento del jugador:", error);
-      }
-    );
+    this.movePlayer(-1, 0);
   }
 
   moveRight(){
-    this.playerService.moveRight(this.playerId).subscribe(
-      (response) => {
-        console.log("movimiento del jugador hacia la derecha",response);
-      },
-      (error) => {
-        console.error("Error al enviar el movimiento del jugador:", error);
-      }
-    );
+    this.movePlayer(1, 0);
   }
 
-  stop(){
-    this.playerService.stop(this.playerId).subscribe(
-      (response) => {
-        console.log("Detiene el movimiento del jugador",response);
-      },
-      (error) => {
-        console.error("Error al enviar el movimiento del jugador:", error);
-      }
-    );
+  movePlayer(deltaX: number, deltaY: number) {
+    if (!this.player) return;
+
+    const moveHead = () => {
+      if (!this.player.isAlive || this.currentDirection === "stop") return;
+      
+      this.player.head.row += deltaY;
+      this.player.head.col += deltaX;
+
+      const row = this.player.head.row;
+      const col = this.player.head.col;
+      this.webSocketService.sendMessageToMovePlayer(this.player.playerId, row, col);
+
+      this.moveTimeout = setTimeout(moveHead, 1000);
+    };
+
+    moveHead();
+  }
+
+  stop() {
+    this.currentDirection = "stop";
+    clearTimeout(this.moveTimeout);
   }
 
   resizeCanvas(): void {
     if (!this.gameState.board) return;
 
-    // Calcula el tamaño del canvas en función del tamaño del tablero y el tamaño de las celdas
     const canvasWidth = this.gameState.board[0].length * 20;
     const canvasHeight = this.gameState.board.length * 20;
 
-    // Asigna el tamaño calculado al canvas
     this.canvas.nativeElement.width = canvasWidth;
     this.canvas.nativeElement.height = canvasHeight;
   }
 
   drawBoard(): void {
-    const ctx = this.canvas.nativeElement.getContext('2d');
+    if (!this.ctx || !this.gameState.board) return;
+
+    this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   
-    // Verifica si el contexto es nulo
-    if (!ctx) {
-      console.error('No se pudo obtener el contexto del canvas');
-      return;
-    }
-  
-    // Limpia el canvas
-    ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
-  
-    if (!this.gameState.board) return;
-  
-    // Itera sobre cada celda del tablero
     for (let y = 0; y < this.gameState.board.length; y++) {
       for (let x = 0; x < this.gameState.board[y].length; x++) {
         const cellValue = this.gameState.board[y][x];
         const color = this.getColor(cellValue);
   
-        // Dibuja un borde negro en la posición de la celda
-        if(cellValue != null){
-          ctx.strokeStyle = 'black';
-          ctx.strokeRect(x * 20, y * 20, 20, 20);
+        if (cellValue != null) {
+          this.ctx.strokeStyle = 'black';
+          this.ctx.strokeRect(x * 20, y * 20, 20, 20);
         }
         
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(x * 20, y * 20, 20, 20);
   
-        // Rellena la celda con el color correspondiente
-        ctx.fillStyle = color;
-        ctx.fillRect(x * 20, y * 20, 20, 20);
-  
-        // Dibuja la cabeza del jugador si la celda corresponde a la posición de su cabeza
         const playerWithHead = this.gameState.players.find(player => player.head.row === y && player.head.col === x);
         if (playerWithHead) {
-            // Calcula el color más claro para la cabeza según el color del jugador
-            let headColor = '';
-            switch (playerWithHead.color) {
-                case "blue": headColor = 'lightblue'; break;
-                case "red": headColor = 'lightcoral'; break;
-                case "yellow": headColor = 'darkgoldenrod'; break;
-                case "green": headColor = 'lightGreen'; break;
-                case "purple": headColor = 'darkorchid'; break;
-                default: headColor = 'white'; break; // Color predeterminado en caso de no coincidir
-            }
-            // Dibuja el círculo con el color más claro
-            ctx.fillStyle = headColor;
-            ctx.beginPath();
-            ctx.arc((x * 20) + 10, (y * 20) + 10, 10, 0, 2 * Math.PI);
-            ctx.fill();
+            let headColor = this.getPlayerColor(playerWithHead.color);
+            this.ctx.fillStyle = headColor;
+            this.ctx.beginPath();
+            this.ctx.arc((x * 20) + 10, (y * 20) + 10, 10, 0, 2 * Math.PI);
+            this.ctx.fill();
         }
+      }      
+    }
+
+    this.drawPlayersPixels();
+  }
+
+  drawPlayersPixels(): void {
+    for (const player of this.gameState.players) {
+      if (!player.pixelsRoute) continue;
+  
+      const playerColor = this.getPlayerColor(player.color);
+  
+      for (const pixel of player.pixelsRoute) {
+        const [row, col] = pixel.split(',').map(Number);
+  
+        if ((row === player.head.row && col === player.head.col) || (row === 0 && col === 0)) continue;
+  
+        // Pintar el pixel
+        this.ctx.fillStyle = playerColor;
+        this.ctx.fillRect(col * 20, row * 20, 20, 20);
+  
+        // Dibujar los bordes en negro
+        this.ctx.strokeStyle = 'black';
+        this.ctx.strokeRect(col * 20, row * 20, 20, 20);
       }
     }
   }
+  
+  getPlayerColor(color: string): string {
+    switch (color) {
+      case "blue": return 'lightblue';
+      case "red": return 'lightcoral';
+      case "yellow": return 'darkgoldenrod';
+      case "green": return 'lightGreen';
+      case "purple": return 'darkorchid';
+      default: return 'white';
+    }
+  }
+  
     
-  // Método para obtener el color basado en el valor de la celda
   getColor(cellValue: number): string {
-    // Si el valor de la celda es 0, devolvemos blanco
     if (cellValue === 0) {
       return 'gray';
     }
@@ -212,24 +270,20 @@ export class PlayGameComponent implements OnInit {
       return 'white';
     }
 
-    // Buscamos el jugador correspondiente al id de la casilla
     const playerId = cellValue; 
     const foundPlayer = this.gameState.players.find(player => player.playerId === playerId);
     
-    // Si no se encuentra el jugador, devolvemos un color predeterminado
     if (!foundPlayer) {
-      return 'blue'; // Puedes ajustar este color según tu preferencia
+      return 'blue';
     }
     
-    // Devolvemos el color del jugador
     switch (foundPlayer.color) {
       case "blue": return 'blue';
       case "red": return 'red';
       case "yellow": return 'yellow';
       case "green": return 'green';
       case "purple": return 'purple';
-      default: return 'gray'; // Por si acaso el jugador tiene un color no reconocido
+      default: return 'gray';
     }
   }
-
 }
