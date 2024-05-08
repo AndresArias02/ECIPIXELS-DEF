@@ -56,7 +56,7 @@ public class BoardServices {
                 } else if (value instanceof Integer) {
                     grid[i][j] = (Integer) value;
                 } else {
-                    // Manejo de otros tipos si es necesario
+                    grid[i][j] = null;
                 }
             }
         }
@@ -64,6 +64,14 @@ public class BoardServices {
     }
 
 
-
-
+    public Integer getPixelBoard(String positionValue) {
+        Integer realdValue=  null;
+        Object value = redisTemplate.opsForHash().get("board_Grid", positionValue);
+        if(value instanceof Integer){
+            realdValue = (Integer) value;
+        } else if (value instanceof String) {
+            realdValue = Integer.parseInt((String) value);
+        }
+        return realdValue;
+    }
 }

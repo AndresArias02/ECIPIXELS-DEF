@@ -39,58 +39,103 @@ public class Player implements Serializable{
     }
 
     public void updatePixelsRoute() {
-        Game game = gameServices.getGame();
-        Integer pixel = game.getPixel(head.getRow(), head.getCol());
-        String positionPixel = head.getRow() + "," + head.getCol();
-        if (this.isAlive && pixel != null && head.getCol() != 0 && head.getRow() != 0 && head.getCol() != 49 && head.getRow() != 49) {
-            checkIfPlayerKilledAnother(positionPixel);
+        Game game = gameServices.getGame(); // Obtener el juego actual
+
+        // Comprobar si el jugador está vivo y no se encuentra en los bordes del tablero
+        if (this.isAlive && head.getCol() != 0 && head.getRow() != 0 && head.getCol() != 49 && head.getRow() != 49 && !killHimself()) {
+            String positionPixel = head.getRow() + "," + head.getCol(); // Obtener la posición de la cabeza del jugador
+            checkIfPlayerKilledAnother(positionPixel); // Comprobar si con la nueva posición de la cabeza el jugador mató a alguien
+
+            // Si la posición no está en los pixeles poseídos, agregarla al recorrido
             if (!pixelsOwned.contains(positionPixel)) {
                 pixelsRoute.add(positionPixel);
             } else {
-                if (!pixelsRoute.isEmpty()) {
-                    List<String> routeCopy = new ArrayList<>(pixelsRoute);
-                    for (String positionsPixels : routeCopy) {
-                        String[] values = positionsPixels.split(",");
-                        int x = Integer.parseInt(values[0]);
-                        int y = Integer.parseInt(values[1]);
-                        Integer p = game.getPixel(x, y);
-                        if (p != null && p != 0) {
-                            Player player = gameServices.getPlayer(String.valueOf(p));
-                            gameServices.updatePixelBoardGrid(positionPixel, 0);
-                            player.removePixel(positionsPixels);
-                            player.setGainedArea(player.getPixelsOwned().size());
-                        }
-                        gameServices.updatePixelBoardGrid(positionPixel, this.id);
-                    }
-
-                    routeCopy.remove("0,0");
-                    pixelsOwned.addAll(routeCopy);
-                    setGainedArea(pixelsOwned.size());
-                    pixelsRoute.clear();
-                    pixelsRoute.add("0,0");
-                    game.updateLeaderBoard();
-                    gameServices.updateGame(game);
-                }
+                // Si ya está en los pixeles poseídos, procesar el área ganada
+                processGainedArea();
             }
         } else {
+            // Si el jugador está muerto o en los bordes, marcarlo como muerto y eliminarlo del juego
             this.isAlive = false;
+            this.pixelsRoute.clear();
             game.deletePlayer(this);
         }
+    }
+
+    private void processGainedArea() {
+        Game game = gameServices.getGame();
+
+        // Si el recorrido contiene más de una posición (excluyendo la posición predeterminada '0,0')
+        if (pixelsRoute.size() > 1) {
+            List<String> routeCopy = new ArrayList<>(pixelsRoute); // Sacar una copia de la lista de pixeles recorridos
+
+            for (String routePixel : routeCopy) {
+                String[] values = routePixel.split(",");
+                int x = Integer.parseInt(values[0]);
+                int y = Integer.parseInt(values[1]);
+
+                if (x != 0 && y != 0) {
+                    Integer gridValue = game.getPixel(x, y); // Obtener el valor del tablero en esa posición
+
+                    if (gridValue != 0) { // ¿Es el ID de otro jugador?
+                        Player player = gameServices.getPlayer(String.valueOf(gridValue));
+                        player.removePixel(routePixel);
+                        player.setGainedArea(player.getPixelsOwned().size());
+                        game.updatePlayer(player);
+                        gameServices.updatePlayer(player);
+                    }
+                    // Actualizar el pixel como nuevo pixel ganado en el área
+                    gameServices.updatePixelBoardGrid(routePixel, this.id);
+                }
+            }
+
+            // Eliminar el valor predeterminado de los pixeles recorridos
+            routeCopy.remove("0,0");
+            // Añadir esos pixeles ganados al área nueva
+            pixelsOwned.addAll(routeCopy);
+            // Determinar el nuevo área del jugador
+            setGainedArea(pixelsOwned.size());
+            // Limpiar la lista de recorrido del jugador y añadir la posición predeterminada '0,0'
+            pixelsRoute.clear();
+            pixelsRoute.add("0,0");
+            // Actualizar el juego completo
+            game.updatePlayer(this);
+            gameServices.updateGame(game);
+
+        }
+    }
+
+
+    private boolean killHimself() {
+        String positionHead = head.getRow() + "," + head.getCol();
+        Boolean killedHimself = false;
+        if(pixelsRoute.contains(positionHead)){
+            killedHimself = true;
+        }
+        return killedHimself;
     }
 
 
     public void checkIfPlayerKilledAnother(String pixel) {
         Game game = gameServices.getGame();
+        List<Player>  players = gameServices.getPlayers();
         List<Player> playersToRemove = new ArrayList<>();
-        for (Player player : game.getPlayers()) {
-            if (player != this && player.getPixelsRoute().contains(pixel)) {
-                playersToRemove.add(player);
-            }
+        for(Player p: players){
+           if(!p.equals(this)){
+               if(p.getPixelsRoute() != null && p.getPixelsRoute().contains(pixel)){
+                   playersToRemove.add(p);
+               }
+           }
         }
         for(Player p: playersToRemove){
-            game.deletePlayer(p);
+            if(p!=this){
+                p.setAlive(false);
+                p.getPixelsRoute().clear();
+                game.deletePlayer(p);
+                gameServices.updatePlayer(p);
+            }
         }
     }
+
 
     public void addPixelOwned(int x, int y) {
         pixelsOwned.add(x + "," + y);
@@ -101,7 +146,10 @@ public class Player implements Serializable{
     }
 
     public void removePixel(String p) {
-        pixelsOwned.remove(p);
+        if(pixelsOwned.contains(p)){
+            pixelsOwned.remove(p);
+        }
+
     }
 
     public void setHead(Head head) {
@@ -138,6 +186,10 @@ public class Player implements Serializable{
 
     public void setGameServices(GameServices gameServices) {
         this.gameServices = gameServices;
+    }
+
+    public void setPixelsOwned(List<String> pixelsOwned) {
+        this.pixelsOwned = pixelsOwned;
     }
 
     public int getGainedArea() {

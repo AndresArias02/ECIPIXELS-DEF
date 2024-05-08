@@ -6,12 +6,10 @@ public class GameState {
 
     private Integer[][] board;
     private List<Player> players;
-    private List<Player> leaderBoard;
 
-    public GameState(Integer[][] board, List<Player> players, List<Player> leaderBoard) {
+    public GameState(Integer[][] board, List<Player> players) {
         this.board = board;
         this.players = players;
-        this.leaderBoard = leaderBoard;
     }
 
     public GameState() {
@@ -31,13 +29,5 @@ public class GameState {
 
     public void setPlayers(List<Player> players) {
         this.players = players;
-    }
-
-    public List<Player> getLeaderBoard() {
-        return leaderBoard;
-    }
-
-    public void setLeaderBoard(List<Player> leaderBoard) {
-        this.leaderBoard = leaderBoard;
     }
 }

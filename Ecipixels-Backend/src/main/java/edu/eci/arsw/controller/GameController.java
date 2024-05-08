@@ -49,8 +49,11 @@ public class GameController {
     @RequestMapping(value = "/players",method = RequestMethod.GET)
     public ResponseEntity<?> getPlayers(){
         try{
-            List<Player> players = gameServices.getPlayers() ;
-            return new ResponseEntity<>(players,HttpStatus.ACCEPTED);
+            List<Player> players = gameServices.getGame().getPlayers();
+            for(Player p: players){
+                gameServices.updatePlayer(p);
+            }
+            return new ResponseEntity<>(gameServices.getPlayers(),HttpStatus.ACCEPTED);
         }catch (Exception ex){
             Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
             return new ResponseEntity<>("Error" + ex.getMessage(),HttpStatus.NOT_FOUND);

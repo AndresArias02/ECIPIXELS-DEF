@@ -27,8 +27,7 @@ public class WebSocketController {
         //System.out.println("player name : " + " " + message);
         Integer[][] grid = gameServices.getBoard();
         List<Player> players = gameServices.getPlayers();
-        List<Player> leaderboard = gameServices.getLeaderBoard();
-        return new GameState(grid,players,leaderboard);
+        return new GameState(grid,players);
     }
 
     @MessageMapping("/movePlayer/{playerId}/{row}/{col}")
@@ -42,7 +41,7 @@ public class WebSocketController {
         player.setHead(new Head(row, col));
         this.gameServices.move(player);
 
-        return new GameState(gameServices.getBoard(), gameServices.getPlayers(), gameServices.getLeaderBoard());
+        return new GameState(gameServices.getBoard(), gameServices.getPlayers());
     }
 
 }

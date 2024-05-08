@@ -18,7 +18,7 @@ export class PlayGameComponent implements OnInit {
   gameState : GameState;
   player : Player;
   playerId: number; 
-  currentDirection: string;
+  currentDirection: string = 'stop';
   moveTimeout: any;
 
   constructor(private playerService:PlayerService,private gameService: GameService,private webSocketService:WebSocketServiceService) { }
@@ -41,8 +41,6 @@ export class PlayGameComponent implements OnInit {
     this.getPlayer();
   }
   
-  
-
   getPlayer() {
     this.player = this.gameService.getCurrentPlayer();
     console.log('jugador en sesión :', this.player);
@@ -87,7 +85,6 @@ export class PlayGameComponent implements OnInit {
     );
   }
 
-  // Método para manejar los eventos del teclado
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
     if (!this.playerId) return;
@@ -115,15 +112,19 @@ export class PlayGameComponent implements OnInit {
         return;
     }
 
-    // Verificar si la nueva dirección es diferente a la dirección actual
+    if (this.isOppositeDirection(newDirection, this.currentDirection)) {
+      this.stop(); 
+      return;
+    }
+
     if (this.currentDirection !== newDirection) {
-      // Detener el movimiento actual antes de cambiar la dirección
-      this.stop();
+     
+      if(this.currentDirection !== 'stop'){
+        this.stop();
+      }
       
-      // Actualizar la dirección actual
       this.currentDirection = newDirection;
       
-      // Ejecutar el método correspondiente a la nueva dirección
       switch (newDirection) {
         case 'up':
           console.log('arrribbbaaaaa');
@@ -172,9 +173,10 @@ export class PlayGameComponent implements OnInit {
 
       const row = this.player.head.row;
       const col = this.player.head.col;
+
       this.webSocketService.sendMessageToMovePlayer(this.player.playerId, row, col);
 
-      this.moveTimeout = setTimeout(moveHead, 1000);
+      this.moveTimeout = setTimeout(moveHead, 350);
     };
 
     moveHead();
@@ -183,6 +185,21 @@ export class PlayGameComponent implements OnInit {
   stop() {
     this.currentDirection = "stop";
     clearTimeout(this.moveTimeout);
+  }
+
+  isOppositeDirection(direction1: string, direction2: string): boolean {
+    switch (direction1) {
+        case 'up':
+            return direction2 === 'down';
+        case 'down':
+            return direction2 === 'up';
+        case 'left':
+            return direction2 === 'right';
+        case 'right':
+            return direction2 === 'left';
+        default:
+            return false;
+    }
   }
 
   resizeCanvas(): void {
@@ -214,7 +231,7 @@ export class PlayGameComponent implements OnInit {
         this.ctx.fillRect(x * 20, y * 20, 20, 20);
   
         const playerWithHead = this.gameState.players.find(player => player.head.row === y && player.head.col === x);
-        if (playerWithHead) {
+        if (playerWithHead && playerWithHead.isAlive) {
             let headColor = this.getPlayerColor(playerWithHead.color);
             this.ctx.fillStyle = headColor;
             this.ctx.beginPath();
@@ -260,7 +277,6 @@ export class PlayGameComponent implements OnInit {
     }
   }
   
-    
   getColor(cellValue: number): string {
     if (cellValue === 0) {
       return 'gray';
@@ -285,5 +301,9 @@ export class PlayGameComponent implements OnInit {
       case "purple": return 'purple';
       default: return 'gray';
     }
+  }
+
+  orderByGainedAreaDesc(players: Player[]): Player[] {
+    return players.sort((a, b) => b.gainedArea - a.gainedArea);
   }
 }
