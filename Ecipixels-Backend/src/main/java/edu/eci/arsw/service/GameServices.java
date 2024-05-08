@@ -64,7 +64,7 @@ public class GameServices {
         return game;
     }
 
-    @Cacheable(RedisConfig.cacheName)
+
     public void addNewPlayer(Player player){
         Game game = getGame();
         setNewPlayer(game,player);
@@ -73,7 +73,7 @@ public class GameServices {
         updateGame(game);
     }
 
-    @Cacheable(RedisConfig.cacheName)
+
     public Player getPlayer(String playerId){
         Player player = null;
         Optional<Player> optionalPlayer = playerServices.getPlayer(Integer.parseInt(playerId));
@@ -87,18 +87,22 @@ public class GameServices {
        return (List<Player>) playerServices.getPLayers();
     }
 
-    @CacheEvict(RedisConfig.cacheName)
+
     public void deletePlayer(Player player){
         playerServices.deletePlayer(player);
     }
 
-    @Cacheable(RedisConfig.cacheName)
+
     public void updatePlayer(Player player){
         playerServices.updatePlayer(player);
     }
 
     public Integer[][] getBoard(){
         return boardServices.getBoard();
+    }
+
+    public Integer getPixelBoard(String positionValue){
+        return boardServices.getPixelBoard(positionValue);
     }
 
     public List<Player> getLeaderBoard(){

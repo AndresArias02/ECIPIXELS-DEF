@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -25,7 +26,6 @@ public class Game implements Serializable {
     private List<Player> players;
     private String[] colors;
     private List<String> usedColors;
-    private LeaderBoard leaderBoard;
     @JsonIgnore
 
     private GameServices gameServices;
@@ -35,7 +35,6 @@ public class Game implements Serializable {
         this.players= new ArrayList<>();
         this.usedColors = new ArrayList<>();
         this.colors = new String[]{"blue","red","yellow","green","purple"};
-        this.leaderBoard = new LeaderBoard();
     }
 
     private void addNewPlayer(Player player){
@@ -50,7 +49,6 @@ public class Game implements Serializable {
 
     public void locatePlayer(Player player){
         placeRandomPlayer(player);
-        setInLeaderBoard(player);
     }
 
     public void deletePlayer(Player player){
@@ -61,13 +59,6 @@ public class Game implements Serializable {
         gameServices.deletePlayer(player);
     }
 
-    public void setInLeaderBoard(Player player){
-        this.leaderBoard.addNewPlayer(player);
-    }
-
-    public void updateLeaderBoard(){
-        this.leaderBoard.setInLeaderBoard();
-    }
 
     public void setPixelProperties(int x, int y , Integer playerId) {
         Integer[][] grid= gameServices.getBoard();
@@ -75,16 +66,30 @@ public class Game implements Serializable {
     }
 
     public Integer getPixel(int x, int y){
-        Integer[][] grid= gameServices.getBoard();
-        return grid[x][y];
+        String positionValue = x +","+ y;
+        Integer value = gameServices.getPixelBoard(positionValue);
+        return value;
     }
+
+    public void updatePlayer(Player player){
+        // Itera sobre la lista de jugadores
+        Iterator<Player> iterator = players.iterator();
+        while (iterator.hasNext()) {
+            Player p = iterator.next();
+            // Comprueba si el jugador que deseas actualizar está en la lista
+            if (p.getPlayerId().equals(player.getPlayerId())) {
+                // Si lo encuentra, elimina el jugador de la lista
+                iterator.remove();
+                break;
+            }
+        }
+        // Agrega el jugador actualizado a la lista
+        players.add(player);
+    }
+
 
     public List<Player> getPlayers() {
         return players;
-    }
-
-    public LeaderBoard getLeaderBoard() {
-        return this.leaderBoard;
     }
 
     private String chooseRandomColor() {

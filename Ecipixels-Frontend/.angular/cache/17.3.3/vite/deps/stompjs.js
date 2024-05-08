@@ -2,9 +2,9 @@ import {
   __commonJS
 } from "./chunk-WKYGNSYM.js";
 
-// ../../node_modules/stompjs/lib/stomp.js
+// node_modules/stompjs/lib/stomp.js
 var require_stomp = __commonJS({
-  "../../node_modules/stompjs/lib/stomp.js"(exports) {
+  "node_modules/stompjs/lib/stomp.js"(exports) {
     (function() {
       var Byte, Client, Frame, Stomp, __hasProp = {}.hasOwnProperty, __slice = [].slice;
       Byte = {
@@ -465,9 +465,9 @@ var require_net = __commonJS({
   }
 });
 
-// ../../node_modules/es5-ext/global.js
+// node_modules/es5-ext/global.js
 var require_global = __commonJS({
-  "../../node_modules/es5-ext/global.js"(exports, module) {
+  "node_modules/es5-ext/global.js"(exports, module) {
     var naiveFallback = function() {
       if (typeof self === "object" && self)
         return self;
@@ -501,9 +501,9 @@ var require_global = __commonJS({
   }
 });
 
-// ../../node_modules/websocket/package.json
+// node_modules/websocket/package.json
 var require_package = __commonJS({
-  "../../node_modules/websocket/package.json"(exports, module) {
+  "node_modules/websocket/package.json"(exports, module) {
     module.exports = {
       name: "websocket",
       description: "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
@@ -565,16 +565,16 @@ var require_package = __commonJS({
   }
 });
 
-// ../../node_modules/websocket/lib/version.js
+// node_modules/websocket/lib/version.js
 var require_version = __commonJS({
-  "../../node_modules/websocket/lib/version.js"(exports, module) {
+  "node_modules/websocket/lib/version.js"(exports, module) {
     module.exports = require_package().version;
   }
 });
 
-// ../../node_modules/websocket/lib/browser.js
+// node_modules/websocket/lib/browser.js
 var require_browser = __commonJS({
-  "../../node_modules/websocket/lib/browser.js"(exports, module) {
+  "node_modules/websocket/lib/browser.js"(exports, module) {
     var _globalThis;
     if (typeof globalThis === "object") {
       _globalThis = globalThis;
@@ -618,9 +618,9 @@ var require_browser = __commonJS({
   }
 });
 
-// ../../node_modules/stompjs/lib/stomp-node.js
+// node_modules/stompjs/lib/stomp-node.js
 var require_stomp_node = __commonJS({
-  "../../node_modules/stompjs/lib/stomp-node.js"(exports) {
+  "node_modules/stompjs/lib/stomp-node.js"(exports) {
     (function() {
       var Stomp, net, overTCP, overWS, wrapTCP, wrapWS;
       Stomp = require_stomp();
@@ -713,9 +713,9 @@ var require_stomp_node = __commonJS({
   }
 });
 
-// ../../node_modules/stompjs/index.js
+// node_modules/stompjs/index.js
 var require_stompjs = __commonJS({
-  "../../node_modules/stompjs/index.js"(exports, module) {
+  "node_modules/stompjs/index.js"(exports, module) {
     var Stomp = require_stomp();
     var StompNode = require_stomp_node();
     module.exports = Stomp.Stomp;
