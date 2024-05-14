@@ -13,21 +13,6 @@ public class Head {
     public Head(){
 
     }
-
-    public void moveUp(){this.row -= 1;}
-
-    public void moveDown(){
-        this.row += 1;
-    }
-
-    public void moveLeft(){
-        this.col -= 1;
-    }
-
-    public void moveRight(){
-        this.col += 1;
-    }
-
     public int getRow() {
         return row;
     }

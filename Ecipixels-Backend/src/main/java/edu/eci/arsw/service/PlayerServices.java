@@ -41,26 +41,6 @@ public class PlayerServices {
         updatePlayer(player);
     }
 
-    public void moveDown(Integer idPlayer,GameServices gameServices){
-        Player player = getPlayerWithId(idPlayer);
-        player.setGameServices(gameServices);
-    }
-
-    public void moveRight(Integer idPlayer, GameServices gameServices){
-        Player player = getPlayerWithId(idPlayer);
-        player.setGameServices(gameServices);
-    }
-
-    public void moveLeft(Integer idPlayer, GameServices gameServices){
-        Player player = getPlayerWithId(idPlayer);
-        player.setGameServices(gameServices);
-    }
-
-    public void stop(Integer idPlayer, GameServices gameServices){
-        Player player = getPlayerWithId(idPlayer); ;
-        player.setGameServices(gameServices);
-    }
-
     public List<String> getPixelsOwned(String id){
         Optional<Player> optionalPlayer = getPlayer(Integer.parseInt(id));
         List<String> pixels = null;
@@ -68,15 +48,6 @@ public class PlayerServices {
             pixels = optionalPlayer.get().getPixelsOwned();
         }
         return pixels;
-    }
-
-    public Player getPlayerWithId(Integer idPlayer){
-        Player player = null;
-        Optional<Player> optionalPlayer = playerRepository.findById(idPlayer);
-        if (optionalPlayer.isPresent()) {
-            player = optionalPlayer.get();
-        }
-        return player;
     }
 
     @Cacheable(RedisConfig.cacheName)

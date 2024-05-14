@@ -26,7 +26,7 @@ export class WebSocketServiceService {
         console.log('Connected to WebSocket server to loggin');
         this.stompClient.subscribe('/topic/GameState', (data: any) => {
             const gameState = JSON.parse(data.body) as GameState;
-            console.log("Recived data: " , gameState);
+            //console.log("Recived data: " , gameState);
             this.gameStateSubject.next(gameState);
         });
     }, (error: any) => {
@@ -39,7 +39,7 @@ export class WebSocketServiceService {
         console.log('Connected to WebSocket server to move');
         this.stompClient.subscribe('/topic/movePlayer', (data: any) => {
             const gameState = JSON.parse(data.body) as GameState;
-            console.log("Recived data: " , gameState);
+            //console.log("Recived data: " , gameState);
             this.gameStateMovements.next(gameState);
         });
     }, (error: any) => {

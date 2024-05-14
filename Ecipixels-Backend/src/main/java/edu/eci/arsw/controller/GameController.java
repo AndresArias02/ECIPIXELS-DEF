@@ -24,17 +24,6 @@ public class GameController {
     @Autowired
     private BoardServices boardServices;
 
-    @RequestMapping(value = "/leaderBoard",method = RequestMethod.GET)
-    public ResponseEntity<?> getLeaderBoard(){
-        try{
-            List<Player> players = gameServices.getLeaderBoard();
-            return new ResponseEntity<>(players,HttpStatus.ACCEPTED);
-        }catch (Exception ex){
-            Logger.getLogger(GameController.class.getName()).log(Level.SEVERE,null,ex);
-            return new ResponseEntity<>("Error" + ex.getMessage(),HttpStatus.NOT_FOUND);
-        }
-    }
-
     @RequestMapping(value = "/board",method = RequestMethod.GET)
     public ResponseEntity<?> getBoard(){
         try{

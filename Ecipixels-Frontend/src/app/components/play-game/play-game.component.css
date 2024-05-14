@@ -8,8 +8,8 @@ canvas {
 /* Estilos para la tabla de líderes */
 .leaderboard-container {
     position: absolute;
-    top: 8px;
-    right: 10px;
+    top: 25px;
+    right: 20px;
 }
 
 .leaderboard-table {
@@ -39,4 +39,8 @@ canvas {
     text-align: center;
     font-style: italic;
     font-weight: bold; /* Letras en negrita */
+}
+
+html{
+    background-color: lightgray;
 }

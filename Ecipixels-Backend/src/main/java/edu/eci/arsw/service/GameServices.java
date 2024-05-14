@@ -87,11 +87,9 @@ public class GameServices {
        return (List<Player>) playerServices.getPLayers();
     }
 
-
     public void deletePlayer(Player player){
         playerServices.deletePlayer(player);
     }
-
 
     public void updatePlayer(Player player){
         playerServices.updatePlayer(player);
@@ -103,11 +101,6 @@ public class GameServices {
 
     public Integer getPixelBoard(String positionValue){
         return boardServices.getPixelBoard(positionValue);
-    }
-
-    public List<Player> getLeaderBoard(){
-        Game game = getGame();
-        return game.getPlayers();
     }
 
     public void move(Player player) {

@@ -43,7 +43,7 @@ export class PlayGameComponent implements OnInit {
   
   getPlayer() {
     this.player = this.gameService.getCurrentPlayer();
-    console.log('jugador en sesión :', this.player);
+    //console.log('jugador en sesión :', this.player);
     if (this.player) {
       this.playerId = this.player.playerId;
     }
@@ -176,7 +176,7 @@ export class PlayGameComponent implements OnInit {
 
       this.webSocketService.sendMessageToMovePlayer(this.player.playerId, row, col);
 
-      this.moveTimeout = setTimeout(moveHead, 350);
+      this.moveTimeout = setTimeout(moveHead, 400);
     };
 
     moveHead();
@@ -255,13 +255,13 @@ export class PlayGameComponent implements OnInit {
   
         if ((row === player.head.row && col === player.head.col) || (row === 0 && col === 0)) continue;
   
-        // Pintar el pixel
-        this.ctx.fillStyle = playerColor;
-        this.ctx.fillRect(col * 20, row * 20, 20, 20);
-  
         // Dibujar los bordes en negro
         this.ctx.strokeStyle = 'black';
         this.ctx.strokeRect(col * 20, row * 20, 20, 20);
+
+        // Pintar el pixel
+        this.ctx.fillStyle = playerColor;
+        this.ctx.fillRect(col * 20, row * 20, 20, 20);
       }
     }
   }
