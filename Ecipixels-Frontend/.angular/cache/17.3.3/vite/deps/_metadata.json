@@ -1,62 +1,62 @@
 {
-  "hash": "cc5cecc1",
-  "configHash": "77318739",
+  "hash": "5adb02a6",
+  "configHash": "0a834342",
   "lockfileHash": "f9172743",
-  "browserHash": "c99e2166",
+  "browserHash": "8e94dbbc",
   "optimized": {
+    "@angular/common": {
+      "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "5eaafbe5",
+      "needsInterop": false
+    },
     "@angular/common/http": {
       "src": "../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "27289a6e",
+      "fileHash": "cc2391c1",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "30936fcc",
+      "fileHash": "77dcd795",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "5ca1485f",
+      "fileHash": "1df9f39b",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "0b594db8",
+      "fileHash": "81d9bc33",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "6304d6a9",
+      "fileHash": "d9c948b3",
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
-      "fileHash": "4551ca53",
+      "fileHash": "c9c2c63f",
       "needsInterop": false
     },
     "sockjs-client": {
       "src": "../../../../../node_modules/sockjs-client/lib/entry.js",
       "file": "sockjs-client.js",
-      "fileHash": "3273271d",
+      "fileHash": "d12bae06",
       "needsInterop": true
     },
     "stompjs": {
       "src": "../../../../../node_modules/stompjs/index.js",
       "file": "stompjs.js",
-      "fileHash": "139f30f6",
+      "fileHash": "2198b4ff",
       "needsInterop": true
-    },
-    "@angular/common": {
-      "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
-      "file": "@angular_common.js",
-      "fileHash": "8958f269",
-      "needsInterop": false
     }
   },
   "chunks": {

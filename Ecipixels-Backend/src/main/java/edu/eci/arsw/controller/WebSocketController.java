@@ -41,7 +41,7 @@ public class WebSocketController {
         player.setHead(new Head(row, col));
         this.gameServices.move(player);
 
-        return new GameState(gameServices.getBoard(), gameServices.getPlayers());
+        return new GameState(gameServices.getBoard(),gameServices.getPlayers());
     }
 
 }

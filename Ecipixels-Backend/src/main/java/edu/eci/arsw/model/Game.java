@@ -57,13 +57,9 @@ public class Game implements Serializable {
         usedColors.remove(player.getColor());
         players.remove(player);
         gameServices.deletePlayer(player);
+        gameServices.updateGame(this);
     }
 
-
-    public void setPixelProperties(int x, int y , Integer playerId) {
-        Integer[][] grid= gameServices.getBoard();
-        grid[x][y] = playerId;
-    }
 
     public Integer getPixel(int x, int y){
         String positionValue = x +","+ y;
@@ -90,6 +86,19 @@ public class Game implements Serializable {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public Integer getAreaByPlayer(Player p){
+        Integer area = 0;
+        if(players.contains(p)){
+            for(Player player: players){
+                if(player.equals(p)){
+                    area = player.getGainedArea();
+                    break;
+                }
+            }
+        }
+        return area;
     }
 
     private String chooseRandomColor() {

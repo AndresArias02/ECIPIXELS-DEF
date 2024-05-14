@@ -75,16 +75,8 @@ public class Player implements Serializable{
 
                 if (x != 0 && y != 0) {
                     Integer gridValue = game.getPixel(x, y); // Obtener el valor del tablero en esa posición
-
-                    if (gridValue != 0) { // ¿Es el ID de otro jugador?
-                        Player player = gameServices.getPlayer(String.valueOf(gridValue));
-                        player.removePixel(routePixel);
-                        player.setGainedArea(player.getPixelsOwned().size());
-                        game.updatePlayer(player);
-                        gameServices.updatePlayer(player);
-                    }
-                    // Actualizar el pixel como nuevo pixel ganado en el área
-                    gameServices.updatePixelBoardGrid(routePixel, this.id);
+                    checkIfPixelBelongsToSomeone(gridValue,routePixel,game); // Comprobar si el pixel ya esta ocupado por otro player
+                    gameServices.updatePixelBoardGrid(routePixel, this.id); // Actualizar el pixel como nuevo pixel ganado en el área
                 }
             }
 
@@ -92,6 +84,8 @@ public class Player implements Serializable{
             routeCopy.remove("0,0");
             // Añadir esos pixeles ganados al área nueva
             pixelsOwned.addAll(routeCopy);
+            // Determinar el Area encerrada por el recorrido
+            calcArea(game);
             // Determinar el nuevo área del jugador
             setGainedArea(pixelsOwned.size());
             // Limpiar la lista de recorrido del jugador y añadir la posición predeterminada '0,0'
@@ -115,7 +109,7 @@ public class Player implements Serializable{
     }
 
 
-    public void checkIfPlayerKilledAnother(String pixel) {
+    private void checkIfPlayerKilledAnother(String pixel) {
         Game game = gameServices.getGame();
         List<Player>  players = gameServices.getPlayers();
         List<Player> playersToRemove = new ArrayList<>();
@@ -136,6 +130,15 @@ public class Player implements Serializable{
         }
     }
 
+    private synchronized void checkIfPixelBelongsToSomeone(Integer gridValue, String routePixel,Game game){
+        if (gridValue != 0) { // ¿Es el ID de otro jugador?
+            Player player = gameServices.getPlayer(String.valueOf(gridValue));
+            player.removePixel(routePixel);
+            player.setGainedArea(player.getGainedArea() - 1);
+            game.updatePlayer(player);
+            gameServices.updatePlayer(player);
+        }
+    }
 
     public void addPixelOwned(int x, int y) {
         pixelsOwned.add(x + "," + y);
@@ -145,11 +148,83 @@ public class Player implements Serializable{
         pixelsRoute.add(x + "," + y);
     }
 
-    public void removePixel(String p) {
+    public synchronized void removePixel(String p) {
         if(pixelsOwned.contains(p)){
             pixelsOwned.remove(p);
         }
 
+    }
+
+    private void calcArea(Game game){
+
+       Integer[][] grid = gameServices.getBoard();
+
+        // Calculate mins and maxs
+        int minRow = Integer.MAX_VALUE;
+        int minCol = Integer.MAX_VALUE;
+        int maxRow = 0;
+        int maxCol = 0;
+
+        // Calcula mínimos y máximos de fila y columna
+        for (int i = 1; i < grid.length-1; i++) {
+            for (int j = 1; j < grid[i].length-1; j++) {
+                if (grid[i][j].equals(this.id)) {
+                    minRow = Math.min(minRow, i);
+                    minCol = Math.min(minCol, j);
+                    maxRow = Math.max(maxRow, i);
+                    maxCol = Math.max(maxCol, j);
+                }
+            }
+        }
+
+        // Iterate over the area
+        for (int r = minRow; r <= maxRow; r++) {
+            for (int c = minCol; c <= maxCol; c++) {
+                // Se analizan solo las celdas de color diferente al buscado
+                if (!grid[r][c].equals(this.id)) {
+                    // Cuenta el número de límites del findClr de la celda evaluada
+                    int paso = 0;
+                    // Right
+                    for (int c1 = c + 1; c1 <= maxCol; c1++) {
+                        if (grid[r][c1].equals(this.id)) {
+                            // Encontró un límite por derecha
+                            paso++;
+                            break;
+                        }
+                    }
+                    // Left
+                    for (int c1 = c - 1; c1 >= minCol; c1--) {
+                        if (grid[r][c1].equals(this.id)) {
+                            paso++;
+                            break;
+                        }
+                    }
+                    // Down
+                    for (int r1 = r + 1; r1 <= maxRow; r1++) {
+                        if (grid[r1][c].equals(this.id)) {
+                            paso++;
+                            break;
+                        }
+                    }
+                    // Up
+                    for (int r1 = r - 1; r1 >= minRow; r1--) {
+                        if (grid[r1][c].equals(this.id)) {
+                            paso++;
+                            break;
+                        }
+                    }
+                    // Si se encuentran los 4 límites se pinta del color
+                    if (paso == 4) {
+                        String pixel = r + "," + c;
+                        Integer value = game.getPixel(r,c);
+                        checkIfPixelBelongsToSomeone(value,pixel,game);
+                        pixelsOwned.add(pixel);
+                        gameServices.updatePixelBoardGrid(pixel,this.id);
+                        paso = 0;
+                    }
+                }
+            }
+        }
     }
 
     public void setHead(Head head) {
@@ -192,7 +267,7 @@ public class Player implements Serializable{
         this.pixelsOwned = pixelsOwned;
     }
 
-    public int getGainedArea() {
+    public synchronized int getGainedArea() {
         return gainedArea;
     }
 
@@ -211,55 +286,5 @@ public class Player implements Serializable{
     private void setId(){
         UUID uuid = UUID.randomUUID();
         this.id = uuid.hashCode();
-    }
-
-    private void fillArea(List<String> path, Game game, Player player) {
-        List<String> allPixels = new ArrayList<>();
-
-        int minX = 50;
-        int maxX = 0;
-        int minY = 50;
-        int maxY = 0;
-
-        //Hallamos los minimos y maximos del area a capturar
-        for(String pixel : path){
-            String values [] = pixel.split(",");
-            int x = Integer.parseInt(values[0]);
-            int y = Integer.parseInt(values[1]);
-            if (x <= minX) {
-                minX=x;
-            } else if (x >= maxX){
-                maxX=x;
-            }else if (y <= minY){
-                minY=x;
-            }else if (y >= maxY) {
-                maxY=x;
-            }
-            if (x < maxX && x > minX && y < maxY && y > minY ){
-
-            }
-        }
-
-        //buscamos los pixeles que estan dentro del area
-        for (String pixel : path){
-
-            String values [] = pixel.split(",");
-            int x = Integer.parseInt(values[0]);
-            int y = Integer.parseInt(values[1]);
-            Integer p = game.getPixel(x,y);
-
-            if (x < maxX && x > minX && y < maxY && y > minY ){
-
-                allPixels.add(x+","+y);
-
-                if (p != 0) {
-                    player.removePixel(pixel);
-                    player.setGainedArea(player.getPixelsOwned().size());
-                }
-                game.setPixelProperties(x,y, this.id);
-            }
-        }
-
-        this.pixelsOwned.addAll(allPixels);
     }
 }
